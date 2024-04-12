@@ -1,0 +1,22 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build Docker Image
+      run: docker build -t myapp .
+    - name: Docker Login
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+    - name: Push Docker Image
+      run: docker push myapp
+    - name: Deploy
+  run: |
+    ssh -o StrictHostKeyChecking=yes -i ${{ secrets.SSH_KEY }} username@${{ secrets.DEPLOY_SERVER }} "docker pull myapp && docker run -d myapp"
+
